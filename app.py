@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for
 import psycopg2
+import bcrypt
 
 app = Flask(__name__)
 
@@ -33,6 +34,9 @@ def register():
         email = request.form.get('email')
         password = request.form.get('password')
 
+        # Hash the password
+        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+
         try:
             conn = connect_db()
             cursor = conn.cursor()
@@ -41,7 +45,7 @@ def register():
             cursor.execute("""
                 INSERT INTO "user" (firstname, lastname, username, email, password)
                 VALUES (%s, %s, %s, %s, %s)
-            """, (firstname, lastname, username, email, password))
+            """, (firstname, lastname, username, email, hashed_password))
 
             conn.commit()
             cursor.close()
